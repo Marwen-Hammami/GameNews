@@ -4,7 +4,7 @@ import marwen.gameid.gamenews.data.model.Gamenews
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface GameApi {
+interface GameNewsApi {
 
     @GET("ISteamNews/GetNewsForApp/v2")
     suspend fun getNewsList(
