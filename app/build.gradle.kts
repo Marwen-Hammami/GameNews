@@ -68,11 +68,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Retrofit
-    implementation(libs.retorfit)
+    implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
     // Coil (Coroutines Image Loader)
-    implementation(libs.coit.compose)
+    implementation(libs.coil.compose)
 }
