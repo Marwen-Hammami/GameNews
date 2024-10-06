@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -151,7 +152,9 @@ fun Newsitem(newsitem: Newsitem, context: Context){
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
             text = newsitem.contents,
-            fontSize = 13.sp
+            fontSize = 13.sp,
+            maxLines = 4, // Limit to 4 lines
+            overflow = TextOverflow.Ellipsis // ...
         )
 
 
