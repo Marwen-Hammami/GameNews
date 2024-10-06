@@ -12,7 +12,7 @@ class GameNewsRepositoryImpl(
     override suspend fun getNewsList(): Flow<Result<List<Newsitem>>> {
         return flow {
             val newsFromApi = try {
-                api.getNewsList("730")  // Static App id of CS2
+                api.getNewsList("730")  // Static App id: CS2 730 | TF2 440 | Dota2 570
             } catch (e: IOException) {
                 e.printStackTrace()
                 emit(Result.Error(message = "Error loading Game News - IOException"))

@@ -104,6 +104,8 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Extract the HTML or BBCode image link and returns it to be displayed.
+// If no image is found in the description, it returns the game image.
 fun extractImageUrl(newsitem: Newsitem): String? {
     // 1. Parse for HTML <img> tags
     val doc = Jsoup.parse(newsitem.contents)
