@@ -1,5 +1,8 @@
 package marwen.gameid.gamenews
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -8,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -86,7 +90,7 @@ class MainActivity : ComponentActivity() {
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(newsList.size){ index ->
-                            Newsitem(newsList[index])
+                            Newsitem(newsList[index], context)
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
@@ -98,7 +102,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Newsitem(newsitem: Newsitem){
+fun Newsitem(newsitem: Newsitem, context: Context){
     val defaultImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + newsitem.appid + "/header.jpg"
     val imageState = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current).data(defaultImage)
@@ -106,10 +110,15 @@ fun Newsitem(newsitem: Newsitem){
     ).state
 
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(20.dp))
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
             .height(300.dp)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(newsitem.url))
+                context.startActivity(intent)
+            }
     ) {
         if (imageState is AsyncImagePainter.State.Error){
             Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
