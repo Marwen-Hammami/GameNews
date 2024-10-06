@@ -48,6 +48,8 @@ import kotlinx.coroutines.flow.collectLatest
 import marwen.gameid.gamenews.data.GameNewsRepositoryImpl
 import marwen.gameid.gamenews.data.model.Newsitem
 import marwen.gameid.gamenews.presentation.GameNewsViewModel
+import org.jsoup.Jsoup
+import java.util.regex.Pattern
 
 class MainActivity : ComponentActivity() {
 
@@ -102,11 +104,30 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun extractImageUrl(newsitem: Newsitem): String? {
+    // 1. Parse for HTML <img> tags
+    val doc = Jsoup.parse(newsitem.contents)
+    val imgElement = doc.selectFirst("img[src]") // Select first <img> tag with src attribute
+    if (imgElement != null) {
+        return imgElement.attr("src") // Return the src attribute value
+    }
+
+    // 2. Parse for BBCode-like [img]...[/img]
+    val bbcodePattern = Pattern.compile("\\[img\\](.*?)\\[/img\\]", Pattern.DOTALL)
+    val bbcodeMatcher = bbcodePattern.matcher(newsitem.contents)
+    if (bbcodeMatcher.find()) {
+        return bbcodeMatcher.group(1) // Return the content between [img] and [/img]
+    }
+
+    // 3. Return game if no image found
+    return "https://steamcdn-a.akamaihd.net/steam/apps/" + newsitem.appid + "/header.jpg"
+}
+
 @Composable
 fun Newsitem(newsitem: Newsitem, context: Context){
-    val defaultImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + newsitem.appid + "/header.jpg"
+    val newsImage = extractImageUrl(newsitem)
     val imageState = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current).data(defaultImage)
+        model = ImageRequest.Builder(LocalContext.current).data(newsImage)
             .size(Size.ORIGINAL).build()
     ).state
 
@@ -153,7 +174,7 @@ fun Newsitem(newsitem: Newsitem, context: Context){
             modifier = Modifier.padding(horizontal = 16.dp),
             text = newsitem.contents,
             fontSize = 13.sp,
-            maxLines = 4, // Limit to 4 lines
+            maxLines = 4,
             overflow = TextOverflow.Ellipsis // ...
         )
 

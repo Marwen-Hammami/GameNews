@@ -75,4 +75,7 @@ dependencies {
 
     // Coil (Coroutines Image Loader)
     implementation(libs.coil.compose)
+
+    // Html parser (Used in image link extraction))
+    implementation(libs.jsoup)
 }
