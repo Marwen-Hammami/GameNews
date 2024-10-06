@@ -1,5 +1,8 @@
 package marwen.gameid.gamenews
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -8,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -43,6 +48,8 @@ import kotlinx.coroutines.flow.collectLatest
 import marwen.gameid.gamenews.data.GameNewsRepositoryImpl
 import marwen.gameid.gamenews.data.model.Newsitem
 import marwen.gameid.gamenews.presentation.GameNewsViewModel
+import org.jsoup.Jsoup
+import java.util.regex.Pattern
 
 class MainActivity : ComponentActivity() {
 
@@ -86,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(newsList.size){ index ->
-                            Newsitem(newsList[index])
+                            Newsitem(newsList[index], context)
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
@@ -97,19 +104,45 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Extract the HTML or BBCode image link and returns it to be displayed.
+// If no image is found in the description, it returns the game image.
+fun extractImageUrl(newsitem: Newsitem): String? {
+    // 1. Parse for HTML <img> tags
+    val doc = Jsoup.parse(newsitem.contents)
+    val imgElement = doc.selectFirst("img[src]") // Select first <img> tag with src attribute
+    if (imgElement != null) {
+        return imgElement.attr("src") // Return the src attribute value
+    }
+
+    // 2. Parse for BBCode-like [img]...[/img]
+    val bbcodePattern = Pattern.compile("\\[img\\](.*?)\\[/img\\]", Pattern.DOTALL)
+    val bbcodeMatcher = bbcodePattern.matcher(newsitem.contents)
+    if (bbcodeMatcher.find()) {
+        return bbcodeMatcher.group(1) // Return the content between [img] and [/img]
+    }
+
+    // 3. Return game if no image found
+    return "https://steamcdn-a.akamaihd.net/steam/apps/" + newsitem.appid + "/header.jpg"
+}
+
 @Composable
-fun Newsitem(newsitem: Newsitem){
-    val defaultImage = "https://steamcdn-a.akamaihd.net/steam/apps/" + newsitem.appid + "/header.jpg"
+fun Newsitem(newsitem: Newsitem, context: Context){
+    val newsImage = extractImageUrl(newsitem)
     val imageState = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current).data(defaultImage)
+        model = ImageRequest.Builder(LocalContext.current).data(newsImage)
             .size(Size.ORIGINAL).build()
     ).state
 
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(20.dp))
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
             .height(300.dp)
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(newsitem.url))
+                context.startActivity(intent)
+            }
     ) {
         if (imageState is AsyncImagePainter.State.Error){
             Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
@@ -142,7 +175,9 @@ fun Newsitem(newsitem: Newsitem){
         Text(
             modifier = Modifier.padding(horizontal = 16.dp),
             text = newsitem.contents,
-            fontSize = 13.sp
+            fontSize = 13.sp,
+            maxLines = 4,
+            overflow = TextOverflow.Ellipsis // ...
         )
 
 
